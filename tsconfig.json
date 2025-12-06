@@ -2,13 +2,12 @@
   "compilerOptions": {
     "target": "ES2020",
     "module": "CommonJS",
-    "outDir": "./dist",
-    "rootDir": "./",
+    "outDir": "dist",
+    "rootDir": ".",
 
     "esModuleInterop": true,
     "skipLibCheck": true,
     "strict": false,
-
     "moduleResolution": "node",
     "resolveJsonModule": true
   },
@@ -20,9 +19,10 @@
 
   "exclude": [
     "client",
+    "script",
+    "vite.config.ts",
+    "**/*.test.ts",
     "node_modules",
-    "dist",
-    "build",
-    "**/*.test.ts"
+    "dist"
   ]
 }
