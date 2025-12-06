@@ -277,45 +277,11 @@ ai-knowledge-quiz/
 
 ## Screenshots
 
-### Topic Selection Screen
+<img width="1917" height="901" alt="image" src="https://github.com/user-attachments/assets/7baac3ed-6c9f-40ed-8643-afd6d6d046b5" />
+<img width="1919" height="886" alt="image" src="https://github.com/user-attachments/assets/88d5a8c7-0a53-4c58-beb8-8d5ad7261488" />
+<img width="1919" height="904" alt="image" src="https://github.com/user-attachments/assets/91561885-cfdd-456e-b853-7e1aa411a45b" />
+<img width="1914" height="882" alt="image" src="https://github.com/user-attachments/assets/f6a1a20c-74f5-4fc4-ae63-f1344d37af12" />
 
-![Topic Selection](screenshots/topic-selection.png)
-_Clean interface for selecting or entering a quiz topic_
-
-### Loading Screen
-
-![Loading](screenshots/loading.png)
-_Animated loading indicator while AI generates questions_
-
-### Quiz Interface
-
-![Quiz Screen](screenshots/quiz-screen.png)
-_Interactive quiz with progress tracking and navigation_
-
-### Question Card
-
-![Question Card](screenshots/question-card.png)
-_Clear question display with multiple-choice options_
-
-### Results Screen
-
-![Results](screenshots/results.png)
-_Score display with AI-generated feedback_
-
-### Question Review
-
-![Question Review](screenshots/question-review.png)
-_Detailed review of all questions with explanations_
-
-### Dark Mode
-
-![Dark Mode](screenshots/dark-mode.png)
-_Full dark mode support for comfortable viewing_
-
-### Error Screen
-
-![Error Handling](screenshots/error-screen.png)
-_Graceful error handling with retry options_
 
 ## Known Issues & Improvements
 
