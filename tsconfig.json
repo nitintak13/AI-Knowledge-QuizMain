@@ -2,26 +2,46 @@
   "compilerOptions": {
     "target": "ES2020",
     "module": "CommonJS",
+<<<<<<< HEAD
     "rootDir": ".",
     "outDir": "./dist",
 
     "moduleResolution": "node",
     "resolveJsonModule": true,
+=======
+    "outDir": "dist",
+    "rootDir": ".",
+>>>>>>> 69d8ac4eb19cc0a8d55b4aa3db0c894e50d7b0f3
 
     "esModuleInterop": true,
     "skipLibCheck": true,
     "strict": false,
+<<<<<<< HEAD
 
     "allowJs": false
   },
 
   "include": ["server/**/*", "shared/**/*"],
+=======
+    "moduleResolution": "node",
+    "resolveJsonModule": true
+  },
+
+  "include": [
+    "server/**/*",
+    "shared/**/*"
+  ],
+>>>>>>> 69d8ac4eb19cc0a8d55b4aa3db0c894e50d7b0f3
 
   "exclude": [
     "client",
     "script",
     "vite.config.ts",
+<<<<<<< HEAD
     "server/vite.ts",
+=======
+    "**/*.test.ts",
+>>>>>>> 69d8ac4eb19cc0a8d55b4aa3db0c894e50d7b0f3
     "node_modules",
     "dist"
   ]

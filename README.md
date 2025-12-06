@@ -40,14 +40,6 @@ npm run dev
 
 The application will be available at `http://localhost:5000`
 
-### Production Build
-
-To build for production:
-
-```bash
-npm run build
-npm start
-```
 
 ### Demo
 
@@ -283,7 +275,7 @@ ai-knowledge-quiz/
 5. **Quiz Completion** → Frontend calls `/api/feedback` → Backend generates personalized feedback
 6. **Results Display** → Score, feedback, and question review shown
 
-## 📸 Screenshots
+## Screenshots
 
 ### Topic Selection Screen
 
@@ -378,20 +370,7 @@ _Graceful error handling with retry options_
    - Choose difficulty level
    - Select question types (multiple choice, true/false, etc.)
 
-4. **Social Features**
-
-   - Leaderboards for popular topics
-   - Challenge friends
-   - Share results on social media
-
-5. **Accessibility**
-   - Better keyboard navigation
-   - Screen reader improvements
-   - High contrast mode
-
 ## Bonus Features
-
-### Implemented
 
 1. **Dark Mode**
 
@@ -438,40 +417,8 @@ _Graceful error handling with retry options_
 - [ ] Export quiz results as PDF
 - [ ] Multi-language support
 
-## Development Notes
-
-### Running Tests
-
-```bash
-npm run check
-```
-
-### Environment Variables
-
-- `GEMINI_API_KEY`: Required - Your Google Gemini API key
-- `PORT`: Optional - Server port (defaults to 5000)
-- `NODE_ENV`: Set automatically - `development` or `production`
-
-### Build Process
-
-- **Client**: Vite bundles React app to `dist/public/`
-- **Server**: esbuild bundles Express server to `dist/index.cjs`
-- Both are built together with `npm run build`
-
-## Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## License
 
 MIT License - feel free to use this project for learning or commercial purposes.
 
-## Acknowledgments
-
-- Google Gemini API for AI-powered question generation
-- React and Vite teams for excellent developer experience
-- Tailwind CSS for beautiful, utility-first styling
-
----
-
-**AI Knowledge Quiz** - Built with React, TypeScript, and Google Gemini AI
