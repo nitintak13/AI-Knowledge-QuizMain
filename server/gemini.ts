@@ -27,6 +27,8 @@ export interface ErrorResponse {
   message: string;
 }
 
+type GeminiJson = Record<string, unknown>;
+
 const QUIZ_SYSTEM_PROMPT = `You are a concise quiz-writer. Return ONLY valid JSON that matches the provided schema. If you cannot generate questions for the topic, return {"error":true,"message":"<reason>"}.`;
 
 const QUIZ_SCHEMA = `{"topic":"string","questions":[{"id":"int","question":"string","options":["string","string","string","string"],"correct_index":"int (0-3)","explanation":"string"}]}`;
@@ -39,7 +41,7 @@ async function callGeminiWithRetry(
   prompt: string,
   systemPrompt: string,
   maxRetries: number = 2
-): Promise<unknown | ErrorResponse> {
+): Promise<GeminiJson | ErrorResponse> {
   let lastError: Error | null = null;
 
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
@@ -52,37 +54,21 @@ async function callGeminiWithRetry(
 
       const response = await ai.models.generateContent({
         model: "gemini-2.5-flash",
-        config: {
-          systemInstruction: systemPrompt,
-        },
+        config: { systemInstruction: systemPrompt },
         contents: prompt,
       });
 
       const rawText = response.text;
-      console.log(`Raw Gemini response (attempt ${attempt + 1}):`, rawText);
-
-      if (!rawText) {
-        throw new Error("Empty response from Gemini");
-      }
+      if (!rawText) throw new Error("Empty response from Gemini");
 
       let jsonText = rawText.trim();
       const jsonMatch = jsonText.match(/```(?:json)?\s*([\s\S]*?)```/);
-      if (jsonMatch) {
-        jsonText = jsonMatch[1].trim();
-      }
+      if (jsonMatch) jsonText = jsonMatch[1].trim();
 
       const parsed = JSON.parse(jsonText);
 
-      if (
-        parsed &&
-        typeof parsed === "object" &&
-        "error" in parsed &&
-        parsed.error === true
-      ) {
-        return {
-          error: true,
-          message: parsed.message || "AI indicated an error in the response",
-        };
+      if (parsed && typeof parsed === "object" && parsed.error === true) {
+        return { error: true, message: parsed.message || "AI error" };
       }
 
       return parsed;
@@ -110,15 +96,11 @@ function isErrorResponse(obj: unknown): obj is ErrorResponse {
 }
 
 function validateQuizResponse(data: unknown): QuizResponse | null {
-  if (typeof data !== "object" || data === null) {
-    return null;
-  }
+  if (typeof data !== "object" || data === null) return null;
 
   const obj = data as Record<string, unknown>;
 
-  if (!obj.questions || !Array.isArray(obj.questions)) {
-    return null;
-  }
+  if (!obj.questions || !Array.isArray(obj.questions)) return null;
 
   const questions: Question[] = [];
   for (let i = 0; i < obj.questions.length; i++) {
@@ -147,10 +129,6 @@ function validateQuizResponse(data: unknown): QuizResponse | null {
     });
   }
 
-  if (questions.length === 0) {
-    return null;
-  }
-
   return {
     topic: typeof obj.topic === "string" ? obj.topic : "",
     questions,
@@ -158,24 +136,18 @@ function validateQuizResponse(data: unknown): QuizResponse | null {
 }
 
 function validateFeedbackResponse(data: unknown): FeedbackResponse | null {
-  if (typeof data !== "object" || data === null) {
-    return null;
-  }
+  if (typeof data !== "object" || data === null) return null;
 
   const obj = data as Record<string, unknown>;
-
   if (
     typeof obj.summary !== "string" ||
     !Array.isArray(obj.tips) ||
-    !obj.tips.every((tip) => typeof tip === "string")
+    !obj.tips.every((t) => typeof t === "string")
   ) {
     return null;
   }
 
-  return {
-    summary: obj.summary,
-    tips: obj.tips as string[],
-  };
+  return { summary: obj.summary, tips: obj.tips as string[] };
 }
 
 export async function generateQuiz(
@@ -183,40 +155,22 @@ export async function generateQuiz(
 ): Promise<QuizResponse | ErrorResponse> {
   const userPrompt = `Task: Generate EXACTLY 5 multiple-choice questions about "${topic}". 
 Each question must have 4 options. Mark the correct answer using correct_index (0-3). 
-Provide a short explanation for each question explaining why the answer is correct.
+Provide an explanation for each question.
 
-Return ONLY valid JSON matching this schema:
-${QUIZ_SCHEMA}
-
-Make questions interesting, educational, and appropriately challenging. 
-Ensure all options are plausible but only one is correct.`;
+Return ONLY valid JSON:
+${QUIZ_SCHEMA}`;
 
   const result = await callGeminiWithRetry(userPrompt, QUIZ_SYSTEM_PROMPT);
 
-  if (isErrorResponse(result)) {
-    return result;
+  if (isErrorResponse(result)) return result;
+
+  const validated = validateQuizResponse(result);
+  if (!validated) {
+    return { error: true, message: "Invalid quiz JSON" };
   }
 
-  const validatedQuiz = validateQuizResponse(result);
-  if (!validatedQuiz) {
-    return {
-      error: true,
-      message: "Invalid quiz format: response did not match expected schema",
-    };
-  }
-
-  if (validatedQuiz.questions.length < 5) {
-    return {
-      error: true,
-      message: `Invalid quiz: expected 5 questions but received ${validatedQuiz.questions.length}`,
-    };
-  }
-
-  validatedQuiz.topic = topic;
-  console.log(
-    `Successfully validated quiz with ${validatedQuiz.questions.length} questions`
-  );
-  return validatedQuiz;
+  validated.topic = topic;
+  return validated;
 }
 
 export async function generateFeedback(
@@ -232,44 +186,32 @@ export async function generateFeedback(
 ): Promise<FeedbackResponse | ErrorResponse> {
   const percentage = Math.round((score / total) * 100);
 
-  const incorrectQuestions = answers
+  const incorrect = answers
     .filter((a) => a.userAnswer !== a.correctAnswer)
     .map((a) => a.question)
     .slice(0, 3);
 
-  const userPrompt = `A user just completed a quiz about "${topic}".
-They scored ${score} out of ${total} (${percentage}%).
+  const userPrompt = `A user completed a quiz on "${topic}" with score ${score}/${total} (${percentage}%).
 
 ${
-  incorrectQuestions.length > 0
-    ? `They struggled with questions like:\n${incorrectQuestions
+  incorrect.length > 0
+    ? `They struggled with questions:\n${incorrect
         .map((q, i) => `${i + 1}. ${q}`)
         .join("\n")}`
     : "They answered all questions correctly!"
 }
 
-Provide personalized feedback with:
-1. A brief encouraging summary (2-3 sentences) about their performance
-2. 2-4 specific tips for improvement based on their score and the topic
-
-Return ONLY valid JSON in this format:
+Return ONLY valid JSON:
 {"summary":"string","tips":["string","string"]}`;
 
   const result = await callGeminiWithRetry(userPrompt, FEEDBACK_SYSTEM_PROMPT);
 
-  if (isErrorResponse(result)) {
-    return result;
+  if (isErrorResponse(result)) return result;
+
+  const validated = validateFeedbackResponse(result);
+  if (!validated) {
+    return { error: true, message: "Invalid feedback JSON" };
   }
 
-  const validatedFeedback = validateFeedbackResponse(result);
-  if (!validatedFeedback) {
-    return {
-      error: true,
-      message:
-        "Invalid feedback format: response did not match expected schema",
-    };
-  }
-
-  console.log("Successfully validated feedback response");
-  return validatedFeedback;
+  return validated;
 }

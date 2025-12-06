@@ -2,23 +2,24 @@
   "compilerOptions": {
     "target": "ES2020",
     "module": "CommonJS",
-    "rootDir": ".",
-    "outDir": "dist",
+    "rootDir": "server",
+    "outDir": "dist/server",
+
     "moduleResolution": "node",
     "resolveJsonModule": true,
+
     "esModuleInterop": true,
     "skipLibCheck": true,
     "strict": false,
     "allowJs": false
   },
-  "include": [
-    "server/**/*",
-    "shared/**/*"
-  ],
+
+  "include": ["server/**/*", "shared/**/*"],
+
   "exclude": [
     "client",
     "script",
-    "vite.config.ts",
+    "client/vite.config.ts",
     "server/vite.ts",
     "**/*.test.ts",
     "node_modules",
