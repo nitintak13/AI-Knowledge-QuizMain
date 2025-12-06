@@ -19,9 +19,9 @@ export const users = pgTable("users", {
 /**
  * Zod schema for inserting new database users
  */
-export const insertUserSchema = createInsertSchema(users).pick({
-  username: true,
-  password: true,
+export const insertUserSchema = z.object({
+  username: z.string(),
+  password: z.string(),
 });
 
 /**
