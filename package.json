@@ -1,18 +1,14 @@
 {
   "name": "ai-knowledge-quiz",
   "version": "1.0.0",
+  "type": "module",
   "license": "MIT",
   "scripts": {
     "dev": "cross-env NODE_ENV=development tsx server/index.ts",
-
-    "build": "npm run build:server && npm run build:client",
-
+    "build": "npm run build:client && npm run build:server",
+    "build:client": "cd client && npm install && npm run build",
     "build:server": "tsc",
-
-    "build:client": "cd client && npm run build",
-
     "start": "cross-env NODE_ENV=production node dist/server/index.js",
-
     "check": "tsc",
     "db:push": "drizzle-kit push"
   },
