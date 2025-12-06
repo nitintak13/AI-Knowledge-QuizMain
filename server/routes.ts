@@ -25,13 +25,17 @@ export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
+  // ----------------------
+  // Generate Quiz
+  // ----------------------
   app.post("/api/generate", async (req, res) => {
     try {
       const parsed = generateQuizSchema.safeParse(req.body);
       if (!parsed.success) {
         return res.status(400).json({
           error: true,
-          message: "Invalid request: topic is required and must be a string (1-200 characters)",
+          message:
+            "Invalid request: topic is required and must be a string (1-200 characters)",
         });
       }
 
@@ -55,6 +59,9 @@ export async function registerRoutes(
     }
   });
 
+  // ----------------------
+  // Feedback Route
+  // ----------------------
   app.post("/api/feedback", async (req, res) => {
     try {
       const parsed = generateFeedbackSchema.safeParse(req.body);
@@ -66,9 +73,20 @@ export async function registerRoutes(
       }
 
       const { topic, score, total, answers } = parsed.data;
-      console.log(`Generating feedback for topic: ${topic}, score: ${score}/${total}`);
+      console.log(
+        `Generating feedback for topic: ${topic}, score: ${score}/${total}`
+      );
 
-      const result = await generateFeedback(topic, score, total, answers);
+      // 🟢 IMPORTANT FIX:
+      // Tell TypeScript the fields are guaranteed by Zod.
+      const typedAnswers = answers as {
+        questionId: number;
+        userAnswer: number | null;
+        correctAnswer: number;
+        question: string;
+      }[];
+
+      const result = await generateFeedback(topic, score, total, typedAnswers);
 
       if ("error" in result && result.error) {
         console.error("Feedback generation failed:", result.message);
