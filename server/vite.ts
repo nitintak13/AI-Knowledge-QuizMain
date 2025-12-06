@@ -3,10 +3,6 @@ import { createServer as createViteServer } from "vite";
 import { type Server } from "http";
 import path from "path";
 import fs from "fs";
-import { fileURLToPath } from "url";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 export async function setupVite(server: Server, app: Express) {
   const vite = await createViteServer({
