@@ -35,6 +35,7 @@ export async function registerRoutes(
   app.post("/api/generate", async (req, res) => {
     try {
       const parsed = generateQuizSchema.safeParse(req.body);
+
       if (!parsed.success) {
         return res.status(400).json({
           error: true,
@@ -44,18 +45,15 @@ export async function registerRoutes(
       }
 
       const { topic } = parsed.data;
-      console.log(`Generating quiz for topic: ${topic}`);
 
       const result = await generateQuiz(topic);
 
       if ("error" in result && result.error) {
-        console.error("Quiz generation failed:", result.message);
         return res.status(500).json(result);
       }
 
       return res.json(result);
     } catch (error) {
-      console.error("Unexpected error in /api/generate:", error);
       return res.status(500).json({
         error: true,
         message: "An unexpected error occurred while generating the quiz",
@@ -77,24 +75,22 @@ export async function registerRoutes(
 
       const { topic, score, total, answers } = parsed.data;
 
-      console.log(
-        `Generating feedback for topic: ${topic}, score: ${score}/${total}`
-      );
-
-      // Zod guarantees types
-      const typedAnswers = answers;
+      // 🔥 FIX: Convert to fully required objects
+      const typedAnswers = answers.map((a) => ({
+        questionId: a.questionId,
+        userAnswer: a.userAnswer,
+        correctAnswer: a.correctAnswer,
+        question: a.question,
+      }));
 
       const result = await generateFeedback(topic, score, total, typedAnswers);
 
       if ("error" in result && result.error) {
-        console.error("Feedback generation failed:", result.message);
         return res.status(500).json(result);
       }
 
-      console.log("Successfully generated feedback");
       return res.json(result);
     } catch (error) {
-      console.error("Unexpected error in /api/feedback:", error);
       return res.status(500).json({
         error: true,
         message: "An unexpected error occurred while generating feedback",
