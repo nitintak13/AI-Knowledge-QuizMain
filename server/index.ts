@@ -65,10 +65,12 @@ app.use((req, res, next) => {
   next();
 });
 
+// -----------------------
 // BOOTSTRAP SERVER
+// -----------------------
 (async () => {
-  // Register API routes
-  await registerRoutes(app);
+  // FIXED: registerRoutes expects (httpServer, app)
+  await registerRoutes(httpServer, app);
 
   // Development mode → inject Vite
   if (process.env.NODE_ENV === "development") {

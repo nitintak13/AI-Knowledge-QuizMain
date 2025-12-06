@@ -81,13 +81,8 @@ export async function registerRoutes(
         `Generating feedback for topic: ${topic}, score: ${score}/${total}`
       );
 
-      // 🔥 Guaranteed correct type because Zod validated it
-      const typedAnswers: {
-        questionId: number;
-        userAnswer: number | null;
-        correctAnswer: number;
-        question: string;
-      }[] = answers;
+      // Zod guarantees types
+      const typedAnswers = answers;
 
       const result = await generateFeedback(topic, score, total, typedAnswers);
 
