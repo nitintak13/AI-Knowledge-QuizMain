@@ -3,10 +3,39 @@ import { createServer as createViteServer } from "vite";
 import { type Server } from "http";
 import path from "path";
 import fs from "fs";
+import { fileURLToPath } from "url";
+
+// ⭐ Fix __dirname in ESM mode
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 export async function setupVite(server: Server, app: Express) {
-  const clientRoot = path.resolve(__dirname, "../client");
+  const isProd = process.env.NODE_ENV === "production";
 
+  const clientRoot = path.resolve(__dirname, "../client");
+  const distRoot = path.resolve(__dirname, "../../dist/client");
+
+  if (isProd) {
+    // Serve built assets
+    app.use(
+      require("express").static(distRoot, {
+        index: false,
+      })
+    );
+
+    // Serve index.html for SPA
+    app.get("*", async (req, res) => {
+      const indexHtml = await fs.promises.readFile(
+        path.join(distRoot, "index.html"),
+        "utf-8"
+      );
+      res.status(200).set({ "Content-Type": "text/html" }).end(indexHtml);
+    });
+
+    return;
+  }
+
+  // ⭐ DEV MODE → Vite middleware
   const vite = await createViteServer({
     root: clientRoot,
     configFile: path.join(clientRoot, "vite.config.ts"),

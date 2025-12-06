@@ -1,40 +1,31 @@
 import { sql } from "drizzle-orm";
 import { pgTable, text, varchar } from "drizzle-orm/pg-core";
-import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
 /**
- * Drizzle users table (database users)
+ * Drizzle users table
  */
 export const users = pgTable("users", {
-  id: varchar("id")
+  id: varchar("id", { length: 36 })
     .primaryKey()
     .default(sql`gen_random_uuid()`),
 
-  username: text("username").notNull().unique(), // MUST NOT pass boolean to unique()
+  username: varchar("username", { length: 255 }).notNull().unique(),
 
   password: text("password").notNull(),
 });
 
 /**
- * Zod schema for inserting new database users
+ * Zod schema for inserting users
  */
 export const insertUserSchema = z.object({
-  username: z.string(),
-  password: z.string(),
+  username: z.string().min(3, "Username must be at least 3 characters."),
+  password: z.string().min(6, "Password must be at least 6 characters."),
 });
 
 /**
- * Type for inserting a new DB user
+ * Types
  */
 export type InsertUser = z.infer<typeof insertUserSchema>;
-
-/**
- * Type for selecting a user from DB
- */
 export type User = typeof users.$inferSelect;
-
-/**
- * Type for inserting user with auto-generated id
- */
 export type NewUser = typeof users.$inferInsert;

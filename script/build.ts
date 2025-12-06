@@ -11,18 +11,14 @@ async function buildAll() {
   await viteBuild({
     root: path.resolve("client"),
     configFile: path.resolve("client", "vite.config.ts"),
-    build: {
-      outDir: path.resolve("dist/public"),
-      emptyOutDir: true,
-    },
   });
 
   console.log("📡 Building server with TypeScript...");
   await new Promise((resolve, reject) => {
     exec("tsc -p tsconfig.json", (err, stdout, stderr) => {
+      if (stdout.trim()) console.log(stdout);
+      if (stderr.trim()) console.error(stderr);
       if (err) return reject(err);
-      console.log(stdout);
-      console.error(stderr);
       resolve(true);
     });
   });

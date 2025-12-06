@@ -1,8 +1,4 @@
-import express, {
-  type Request,
-  type Response,
-  type NextFunction,
-} from "express";
+import express, { Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { serveStatic } from "./static";
 import { createServer } from "http";
@@ -17,7 +13,6 @@ declare module "http" {
   }
 }
 
-// Parse JSON with raw body support
 app.use(
   express.json({
     verify: (req, _res, buf) => {
@@ -44,7 +39,6 @@ export function log(message: string, source = "express") {
 app.use((req, res, next) => {
   const start = Date.now();
   const path = req.path;
-
   let capturedJson: unknown;
 
   const originalJson = res.json;
@@ -69,17 +63,16 @@ app.use((req, res, next) => {
 // BOOTSTRAP SERVER
 // -----------------------
 (async () => {
-  // FIXED: registerRoutes expects (httpServer, app)
   await registerRoutes(httpServer, app);
 
-  // Development mode → inject Vite
+  // DEV MODE → use Vite
   if (process.env.NODE_ENV === "development") {
     log("Development mode: enabling Vite", "express");
     const { setupVite } = await import("./vite");
     await setupVite(httpServer, app);
   }
 
-  // Production mode → serve static frontend
+  // PROD MODE → serve static build
   if (process.env.NODE_ENV === "production") {
     log("Production mode: serving static build", "express");
     serveStatic(app);
@@ -93,7 +86,6 @@ app.use((req, res, next) => {
     res.status(status).json({ message });
   });
 
-  // Start listening
   const port = parseInt(process.env.PORT || "5000", 10);
   httpServer.listen({ port, host: "0.0.0.0" }, () => {
     log(`Server running on port ${port}`);

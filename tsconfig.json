@@ -1,18 +1,25 @@
 {
   "compilerOptions": {
     "target": "ES2020",
-    "module": "CommonJS",
+    "module": "ESNext",
+    "moduleResolution": "Node",
 
     "rootDir": ".",
     "outDir": "dist",
 
-    "moduleResolution": "node",
     "resolveJsonModule": true,
-
     "esModuleInterop": true,
     "skipLibCheck": true,
     "strict": false,
-    "allowJs": false
+
+    "allowJs": false,
+
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["client/src/*"],
+      "@server/*": ["server/*"],
+      "@shared/*": ["shared/*"]
+    }
   },
 
   "include": ["server/**/*", "shared/**/*"],
@@ -21,9 +28,8 @@
     "client",
     "script",
     "client/vite.config.ts",
-    "server/vite.ts",
     "**/*.test.ts",
-    "node_modules",
-    "dist"
+    "dist",
+    "node_modules"
   ]
 }
