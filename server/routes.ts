@@ -1,6 +1,6 @@
 import type { Express } from "express";
 import type { Server } from "http";
-import { generateQuiz, generateFeedback } from "./gemini";
+import { generateQuiz, generateFeedback } from "./gemini.js";
 import { z } from "zod";
 
 // ----------------------

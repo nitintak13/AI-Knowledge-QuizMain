@@ -11,7 +11,6 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "strict": false,
-
     "allowJs": false,
 
     "baseUrl": ".",
@@ -22,14 +21,7 @@
     }
   },
 
-  "include": ["server/**/*", "shared/**/*"],
+  "include": ["server", "shared"],
 
-  "exclude": [
-    "client",
-    "script",
-    "client/vite.config.ts",
-    "**/*.test.ts",
-    "dist",
-    "node_modules"
-  ]
+  "exclude": ["client", "script", "**/*.test.ts", "dist", "node_modules"]
 }
