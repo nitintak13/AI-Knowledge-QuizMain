@@ -1,8 +1,11 @@
 import type { Express } from "express";
-import { createServer, type Server } from "http";
+import type { Server } from "http";
 import { generateQuiz, generateFeedback } from "./gemini";
 import { z } from "zod";
 
+// ----------------------
+// Zod Schemas
+// ----------------------
 const generateQuizSchema = z.object({
   topic: z.string().min(1).max(200),
 });
@@ -21,13 +24,14 @@ const generateFeedbackSchema = z.object({
   ),
 });
 
+// ----------------------
+// Register Routes
+// ----------------------
 export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
-  // ----------------------
-  // Generate Quiz
-  // ----------------------
+  // ------------------ Generate Quiz ------------------
   app.post("/api/generate", async (req, res) => {
     try {
       const parsed = generateQuizSchema.safeParse(req.body);
@@ -59,12 +63,11 @@ export async function registerRoutes(
     }
   });
 
-  // ----------------------
-  // Feedback Route
-  // ----------------------
+  // ------------------ Feedback Route ------------------
   app.post("/api/feedback", async (req, res) => {
     try {
       const parsed = generateFeedbackSchema.safeParse(req.body);
+
       if (!parsed.success) {
         return res.status(400).json({
           error: true,
@@ -73,18 +76,18 @@ export async function registerRoutes(
       }
 
       const { topic, score, total, answers } = parsed.data;
+
       console.log(
         `Generating feedback for topic: ${topic}, score: ${score}/${total}`
       );
 
-      // 🟢 IMPORTANT FIX:
-      // Tell TypeScript the fields are guaranteed by Zod.
-      const typedAnswers = answers as {
+      // 🔥 Guaranteed correct type because Zod validated it
+      const typedAnswers: {
         questionId: number;
         userAnswer: number | null;
         correctAnswer: number;
         question: string;
-      }[];
+      }[] = answers;
 
       const result = await generateFeedback(topic, score, total, typedAnswers);
 

@@ -28,74 +28,70 @@ app.use(
 
 app.use(express.urlencoded({ extended: false }));
 
-// Logging utility
+// Logging helper
 export function log(message: string, source = "express") {
-  const formattedTime = new Date().toLocaleTimeString("en-US", {
+  const time = new Date().toLocaleTimeString("en-US", {
+    hour12: true,
     hour: "numeric",
     minute: "2-digit",
     second: "2-digit",
-    hour12: true,
   });
 
-  console.log(`${formattedTime} [${source}] ${message}`);
+  console.log(`${time} [${source}] ${message}`);
 }
 
-// Request/Response logging for API routes
+// API request logger
 app.use((req, res, next) => {
   const start = Date.now();
   const path = req.path;
 
-  let capturedJsonResponse: Record<string, any> | undefined;
+  let capturedJson: unknown;
 
   const originalJson = res.json;
   res.json = function (body, ...args) {
-    capturedJsonResponse = body;
+    capturedJson = body;
     return originalJson.apply(res, [body, ...args]);
   };
 
   res.on("finish", () => {
     if (path.startsWith("/api")) {
-      const duration = Date.now() - start;
-      let logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
-
-      if (capturedJsonResponse) {
-        logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
-      }
-      log(logLine);
+      const ms = Date.now() - start;
+      let msg = `${req.method} ${path} ${res.statusCode} in ${ms}ms`;
+      if (capturedJson) msg += ` :: ${JSON.stringify(capturedJson)}`;
+      log(msg);
     }
   });
 
   next();
 });
 
-// MAIN APP BOOTSTRAP
+// BOOTSTRAP SERVER
 (async () => {
   // Register API routes
-  await registerRoutes(httpServer, app);
+  await registerRoutes(app);
 
-  // Global error handler
-  app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
-    const status = err.status || err.statusCode || 500;
-    const message = err.message || "Internal Server Error";
-    res.status(status).json({ message });
-    log(`Error: ${message}`, "error");
-  });
+  // Development mode → inject Vite
+  if (process.env.NODE_ENV === "development") {
+    log("Development mode: enabling Vite", "express");
+    const { setupVite } = await import("./vite");
+    await setupVite(httpServer, app);
+  }
 
-  // Production: Serve built React app
+  // Production mode → serve static frontend
   if (process.env.NODE_ENV === "production") {
     log("Production mode: serving static build", "express");
     serveStatic(app);
   }
 
-  // Development: Enable Vite middleware
-  if (process.env.NODE_ENV === "development") {
-    log("Development mode: enabling Vite", "express");
-    // IMPORTANT: dynamic import so Vite is NOT included in production build
-    const { setupVite } = await import("./vite");
-    await setupVite(httpServer, app);
-  }
+  // Global error handler
+  app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
+    const status = err.status || 500;
+    const message = err.message || "Internal Server Error";
+    log(`Error: ${message}`, "error");
+    res.status(status).json({ message });
+  });
 
-  // Start server
+  // Start listening
   const port = parseInt(process.env.PORT || "5000", 10);
   httpServer.listen({ port, host: "0.0.0.0" }, () => {
     log(`Server running on port ${port}`);

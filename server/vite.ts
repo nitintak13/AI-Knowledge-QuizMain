@@ -5,8 +5,11 @@ import path from "path";
 import fs from "fs";
 
 export async function setupVite(server: Server, app: Express) {
+  const clientRoot = path.resolve(__dirname, "../client");
+
   const vite = await createViteServer({
-    configFile: path.resolve(process.cwd(), "client/vite.config.ts"),
+    root: clientRoot,
+    configFile: path.join(clientRoot, "vite.config.ts"),
     server: {
       middlewareMode: true,
       hmr: {
@@ -21,7 +24,7 @@ export async function setupVite(server: Server, app: Express) {
 
   app.use("*", async (req, res, next) => {
     try {
-      const indexHtmlPath = path.resolve(process.cwd(), "client/index.html");
+      const indexHtmlPath = path.join(clientRoot, "index.html");
       let template = await fs.promises.readFile(indexHtmlPath, "utf-8");
 
       template = await vite.transformIndexHtml(req.originalUrl, template);

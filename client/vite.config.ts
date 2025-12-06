@@ -4,15 +4,18 @@ import path from "path";
 
 export default defineConfig({
   plugins: [react()],
+
+  root: import.meta.dirname, // client/
+
   resolve: {
     alias: {
-      "@": path.resolve(__dirname, "src"),
-      "@shared": path.resolve(__dirname, "../shared"),
+      "@": path.resolve(import.meta.dirname, "src"),
+      "@shared": path.resolve(import.meta.dirname, "../shared"),
     },
   },
-  root: __dirname, // client/
+
   build: {
-    outDir: path.resolve(__dirname, "../dist/public"),
+    outDir: path.resolve(import.meta.dirname, "../dist/public"),
     emptyOutDir: true,
   },
 });
