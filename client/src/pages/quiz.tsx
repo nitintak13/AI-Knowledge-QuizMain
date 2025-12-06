@@ -12,6 +12,7 @@ type Screen = "topic" | "loading" | "quiz" | "results" | "error";
 const STORAGE_KEY = "quiz-state";
 
 interface QuizState {
+  candidateName: string;
   topic: string;
   questions: Question[];
   answers: Record<number, number | null>;
@@ -20,6 +21,7 @@ interface QuizState {
 }
 
 const initialState: QuizState = {
+  candidateName: "",
   topic: "",
   questions: [],
   answers: {},
@@ -59,12 +61,12 @@ export default function QuizPage() {
     }
   }, []);
 
-  const handleSelectTopic = useCallback(async (topic: string) => {
-    setState((prev) => ({ ...prev, topic }));
+  const handleSelectTopic = useCallback(async (topic: string, name: string) => {
+    setState((prev) => ({ ...prev, topic, candidateName: name }));
     setScreen("loading");
     setError(null);
 
-    const result = await generateQuiz(topic);
+    const result = await generateQuiz(topic, name);
 
     if ("error" in result && result.error) {
       setError(result.message);
@@ -122,6 +124,7 @@ export default function QuizPage() {
 
     const result = await generateFeedback(
       state.topic,
+      state.candidateName,
       correctCount,
       state.questions.length,
       answersForFeedback

@@ -10,18 +10,20 @@ const presetTopics = [
 ];
 
 interface TopicSelectProps {
-  onSelectTopic: (topic: string) => void;
+  onSelectTopic: (topic: string, name: string) => void;
   isLoading?: boolean;
 }
 
 export default function TopicSelect({ onSelectTopic, isLoading = false }: TopicSelectProps) {
+  const [name, setName] = useState("");
   const [customTopic, setCustomTopic] = useState("");
   const [selectedPreset, setSelectedPreset] = useState<string | null>(null);
 
   const handleStart = () => {
     const topic = customTopic.trim() || selectedPreset;
-    if (topic) {
-      onSelectTopic(topic);
+    const candidateName = name.trim();
+    if (topic && candidateName) {
+      onSelectTopic(topic, candidateName);
     }
   };
 
@@ -31,9 +33,20 @@ export default function TopicSelect({ onSelectTopic, isLoading = false }: TopicS
         <div className="bg-white dark:bg-gray-800 rounded-lg border p-6">
           <div className="text-center mb-6">
             <h1 className="text-2xl font-bold mb-2">AI Knowledge Quiz</h1>
-            <p className="text-gray-600 dark:text-gray-400">Choose a topic and test your knowledge</p>
+            <p className="text-gray-600 dark:text-gray-400">Enter your name and choose a topic to get personalized feedback</p>
           </div>
           <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium mb-2">Your Name</label>
+              <input
+                type="text"
+                placeholder="Enter your name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                disabled={isLoading}
+                className="w-full p-3 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800"
+              />
+            </div>
             <div>
               <h3 className="text-sm font-medium mb-3">Popular Topics</h3>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
@@ -74,7 +87,7 @@ export default function TopicSelect({ onSelectTopic, isLoading = false }: TopicS
             </div>
             <button
               onClick={handleStart}
-              disabled={!customTopic.trim() && !selectedPreset || isLoading}
+              disabled={!name.trim() || (!customTopic.trim() && !selectedPreset) || isLoading}
               className="w-full p-3 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isLoading ? "Generating..." : "Start Quiz"}

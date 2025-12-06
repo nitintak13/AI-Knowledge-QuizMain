@@ -6,11 +6,13 @@ import { randomUUID } from "crypto";
  */
 export type MemoryUser = {
   id: string;
+  name?: string;
   username?: string;
   password?: string;
 };
 
 export type MemoryInsertUser = {
+  name?: string;
   username?: string;
   password?: string;
 };

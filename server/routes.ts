@@ -8,10 +8,12 @@ import { z } from "zod";
 // ----------------------
 const generateQuizSchema = z.object({
   topic: z.string().min(1).max(200),
+  name: z.string().min(1).max(255),
 });
 
 const generateFeedbackSchema = z.object({
   topic: z.string(),
+  name: z.string().min(1).max(255),
   score: z.number().int().min(0),
   total: z.number().int().min(1),
   answers: z.array(
@@ -40,13 +42,13 @@ export async function registerRoutes(
         return res.status(400).json({
           error: true,
           message:
-            "Invalid request: topic is required and must be a string (1-200 characters)",
+            "Invalid request: topic and name are required (topic: 1-200 characters, name: 1-255 characters)",
         });
       }
 
-      const { topic } = parsed.data;
+      const { topic, name } = parsed.data;
 
-      const result = await generateQuiz(topic);
+      const result = await generateQuiz(topic, name);
 
       if ("error" in result && result.error) {
         return res.status(500).json(result);
@@ -73,7 +75,7 @@ export async function registerRoutes(
         });
       }
 
-      const { topic, score, total, answers } = parsed.data;
+      const { topic, name, score, total, answers } = parsed.data;
 
       // 🔥 FIX: Convert to fully required objects
       const typedAnswers = answers.map((a) => ({
@@ -83,7 +85,7 @@ export async function registerRoutes(
         question: a.question,
       }));
 
-      const result = await generateFeedback(topic, score, total, typedAnswers);
+      const result = await generateFeedback(topic, name, score, total, typedAnswers);
 
       if ("error" in result && result.error) {
         return res.status(500).json(result);

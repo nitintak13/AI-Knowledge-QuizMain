@@ -151,11 +151,13 @@ function validateFeedbackResponse(data: unknown): FeedbackResponse | null {
 }
 
 export async function generateQuiz(
-  topic: string
+  topic: string,
+  candidateName: string
 ): Promise<QuizResponse | ErrorResponse> {
-  const userPrompt = `Task: Generate EXACTLY 5 multiple-choice questions about "${topic}". 
+  const userPrompt = `Task: Generate EXACTLY 5 multiple-choice questions about "${topic}" for ${candidateName}. 
 Each question must have 4 options. Mark the correct answer using correct_index (0-3). 
 Provide an explanation for each question.
+Make the questions engaging and tailored for ${candidateName}.
 
 Return ONLY valid JSON:
 ${QUIZ_SCHEMA}`;
@@ -175,6 +177,7 @@ ${QUIZ_SCHEMA}`;
 
 export async function generateFeedback(
   topic: string,
+  candidateName: string,
   score: number,
   total: number,
   answers: {
@@ -191,15 +194,17 @@ export async function generateFeedback(
     .map((a) => a.question)
     .slice(0, 3);
 
-  const userPrompt = `A user completed a quiz on "${topic}" with score ${score}/${total} (${percentage}%).
+  const userPrompt = `${candidateName} completed a quiz on "${topic}" with score ${score}/${total} (${percentage}%).
 
 ${
   incorrect.length > 0
-    ? `They struggled with questions:\n${incorrect
+    ? `${candidateName} struggled with questions:\n${incorrect
         .map((q, i) => `${i + 1}. ${q}`)
         .join("\n")}`
-    : "They answered all questions correctly!"
+    : `${candidateName} answered all questions correctly!`
 }
+
+Provide personalized feedback addressing ${candidateName} by name. Make it encouraging and constructive.
 
 Return ONLY valid JSON:
 {"summary":"string","tips":["string","string"]}`;

@@ -15,14 +15,14 @@ export interface ErrorResponse {
   message: string;
 }
 
-export async function generateQuiz(topic: string): Promise<QuizResponse | ErrorResponse> {
+export async function generateQuiz(topic: string, name: string): Promise<QuizResponse | ErrorResponse> {
   try {
     const response = await fetch("/api/generate", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ topic }),
+      body: JSON.stringify({ topic, name }),
     });
 
     const data = await response.json();
@@ -46,6 +46,7 @@ export async function generateQuiz(topic: string): Promise<QuizResponse | ErrorR
 
 export async function generateFeedback(
   topic: string,
+  name: string,
   score: number,
   total: number,
   answers: { questionId: number; userAnswer: number | null; correctAnswer: number; question: string }[]
@@ -56,7 +57,7 @@ export async function generateFeedback(
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ topic, score, total, answers }),
+      body: JSON.stringify({ topic, name, score, total, answers }),
     });
 
     const data = await response.json();
