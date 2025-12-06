@@ -5,7 +5,6 @@ import path from "path";
 import fs from "fs";
 import { fileURLToPath } from "url";
 
-// ⭐ Fix __dirname in ESM mode
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -16,14 +15,12 @@ export async function setupVite(server: Server, app: Express) {
   const distRoot = path.resolve(__dirname, "../../dist/client");
 
   if (isProd) {
-    // Serve built assets
     app.use(
       require("express").static(distRoot, {
         index: false,
       })
     );
 
-    // Serve index.html for SPA
     app.get("*", async (req, res) => {
       const indexHtml = await fs.promises.readFile(
         path.join(distRoot, "index.html"),
@@ -35,7 +32,6 @@ export async function setupVite(server: Server, app: Express) {
     return;
   }
 
-  // ⭐ DEV MODE → Vite middleware
   const vite = await createViteServer({
     root: clientRoot,
     configFile: path.join(clientRoot, "vite.config.ts"),

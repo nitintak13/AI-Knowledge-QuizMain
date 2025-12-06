@@ -1,9 +1,5 @@
 import { randomUUID } from "crypto";
 
-/**
- * In-memory user type.
- * This is intentionally NOT tied to the Drizzle DB schema.
- */
 export type MemoryUser = {
   id: string;
   name?: string;

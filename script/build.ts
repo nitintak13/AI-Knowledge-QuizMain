@@ -4,16 +4,13 @@ import { exec } from "child_process";
 import path from "path";
 
 async function buildAll() {
-  // Clean old dist
   await rm("dist", { recursive: true, force: true });
 
-  console.log("📦 Building client...");
   await viteBuild({
     root: path.resolve("client"),
     configFile: path.resolve("client", "vite.config.ts"),
   });
 
-  console.log("📡 Building server with TypeScript...");
   await new Promise((resolve, reject) => {
     exec("tsc -p tsconfig.json", (err, stdout, stderr) => {
       if (stdout.trim()) console.log(stdout);
@@ -23,7 +20,7 @@ async function buildAll() {
     });
   });
 
-  console.log("✅ Build complete");
+  console.log(" Build complete");
 }
 
 buildAll().catch((err) => {

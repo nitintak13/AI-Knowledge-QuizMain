@@ -6,7 +6,6 @@ import { createServer } from "http";
 const app = express();
 const httpServer = createServer(app);
 
-// Extend IncomingMessage to hold rawBody
 declare module "http" {
   interface IncomingMessage {
     rawBody?: Buffer;
@@ -23,7 +22,6 @@ app.use(
 
 app.use(express.urlencoded({ extended: false }));
 
-// Logging helper
 export function log(message: string, source = "express") {
   const time = new Date().toLocaleTimeString("en-US", {
     hour12: true,
@@ -35,7 +33,6 @@ export function log(message: string, source = "express") {
   console.log(`${time} [${source}] ${message}`);
 }
 
-// API request logger
 app.use((req, res, next) => {
   const start = Date.now();
   const path = req.path;
@@ -59,26 +56,20 @@ app.use((req, res, next) => {
   next();
 });
 
-// -----------------------
-// BOOTSTRAP SERVER
-// -----------------------
 (async () => {
   await registerRoutes(httpServer, app);
 
-  // DEV MODE → use Vite
   if (process.env.NODE_ENV === "development") {
     log("Development mode: enabling Vite", "express");
     const { setupVite } = await import("./vite");
     await setupVite(httpServer, app);
   }
 
-  // PROD MODE → serve static build
   if (process.env.NODE_ENV === "production") {
     log("Production mode: serving static build", "express");
     serveStatic(app);
   }
 
-  // Global error handler
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || 500;
     const message = err.message || "Internal Server Error";

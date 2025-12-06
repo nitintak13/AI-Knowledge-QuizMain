@@ -3,9 +3,6 @@ import type { Server } from "http";
 import { generateQuiz, generateFeedback } from "./gemini.js";
 import { z } from "zod";
 
-// ----------------------
-// Zod Schemas
-// ----------------------
 const generateQuizSchema = z.object({
   topic: z.string().min(1).max(200),
   name: z.string().min(1).max(255),
@@ -26,14 +23,10 @@ const generateFeedbackSchema = z.object({
   ),
 });
 
-// ----------------------
-// Register Routes
-// ----------------------
 export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
-  // ------------------ Generate Quiz ------------------
   app.post("/api/generate", async (req, res) => {
     try {
       const parsed = generateQuizSchema.safeParse(req.body);
@@ -63,7 +56,6 @@ export async function registerRoutes(
     }
   });
 
-  // ------------------ Feedback Route ------------------
   app.post("/api/feedback", async (req, res) => {
     try {
       const parsed = generateFeedbackSchema.safeParse(req.body);
@@ -77,7 +69,6 @@ export async function registerRoutes(
 
       const { topic, name, score, total, answers } = parsed.data;
 
-      // 🔥 FIX: Convert to fully required objects
       const typedAnswers = answers.map((a) => ({
         questionId: a.questionId,
         userAnswer: a.userAnswer,
@@ -85,7 +76,13 @@ export async function registerRoutes(
         question: a.question,
       }));
 
-      const result = await generateFeedback(topic, name, score, total, typedAnswers);
+      const result = await generateFeedback(
+        topic,
+        name,
+        score,
+        total,
+        typedAnswers
+      );
 
       if ("error" in result && result.error) {
         return res.status(500).json(result);
