@@ -1,4 +1,8 @@
-import express, { type Request, Response, NextFunction } from "express";
+import express, {
+  type Request,
+  type Response,
+  type NextFunction,
+} from "express";
 import { registerRoutes } from "./routes";
 import { serveStatic } from "./static";
 import { createServer } from "http";
@@ -6,22 +10,25 @@ import { createServer } from "http";
 const app = express();
 const httpServer = createServer(app);
 
+// Extend IncomingMessage to hold rawBody
 declare module "http" {
   interface IncomingMessage {
-    rawBody: unknown;
+    rawBody?: Buffer;
   }
 }
 
+// Parse JSON with raw body support
 app.use(
   express.json({
     verify: (req, _res, buf) => {
       req.rawBody = buf;
     },
-  }),
+  })
 );
 
 app.use(express.urlencoded({ extended: false }));
 
+// Logging utility
 export function log(message: string, source = "express") {
   const formattedTime = new Date().toLocaleTimeString("en-US", {
     hour: "numeric",
@@ -33,25 +40,27 @@ export function log(message: string, source = "express") {
   console.log(`${formattedTime} [${source}] ${message}`);
 }
 
+// Request/Response logging for API routes
 app.use((req, res, next) => {
   const start = Date.now();
   const path = req.path;
-  let capturedJsonResponse: Record<string, any> | undefined = undefined;
 
-  const originalResJson = res.json;
-  res.json = function (bodyJson, ...args) {
-    capturedJsonResponse = bodyJson;
-    return originalResJson.apply(res, [bodyJson, ...args]);
+  let capturedJsonResponse: Record<string, any> | undefined;
+
+  const originalJson = res.json;
+  res.json = function (body, ...args) {
+    capturedJsonResponse = body;
+    return originalJson.apply(res, [body, ...args]);
   };
 
   res.on("finish", () => {
-    const duration = Date.now() - start;
     if (path.startsWith("/api")) {
+      const duration = Date.now() - start;
       let logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
+
       if (capturedJsonResponse) {
         logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
       }
-
       log(logLine);
     }
   });
@@ -59,32 +68,36 @@ app.use((req, res, next) => {
   next();
 });
 
+// MAIN APP BOOTSTRAP
 (async () => {
+  // Register API routes
   await registerRoutes(httpServer, app);
 
+  // Global error handler
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
     const message = err.message || "Internal Server Error";
-
     res.status(status).json({ message });
-    throw err;
+    log(`Error: ${message}`, "error");
   });
 
+  // Production: Serve built React app
   if (process.env.NODE_ENV === "production") {
+    log("Production mode: serving static build", "express");
     serveStatic(app);
-  } else {
+  }
+
+  // Development: Enable Vite middleware
+  if (process.env.NODE_ENV === "development") {
+    log("Development mode: enabling Vite", "express");
+    // IMPORTANT: dynamic import so Vite is NOT included in production build
     const { setupVite } = await import("./vite");
     await setupVite(httpServer, app);
   }
+
+  // Start server
   const port = parseInt(process.env.PORT || "5000", 10);
-  httpServer.listen(
-    {
-      port,
-      host: "0.0.0.0",
-      reusePort: true,
-    },
-    () => {
-      log(`serving on port ${port}`);
-    },
-  );
+  httpServer.listen({ port, host: "0.0.0.0" }, () => {
+    log(`Server running on port ${port}`);
+  });
 })();
